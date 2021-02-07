@@ -27,6 +27,7 @@ import com.google.devtools.j2objc.util.Parser;
 import com.google.devtools.j2objc.util.PathClassLoader;
 import com.google.devtools.j2objc.util.SourceVersion;
 import com.sun.source.tree.CompilationUnitTree;
+import com.sun.source.tree.ExpressionTree;
 import com.sun.source.util.JavacTask;
 import com.sun.source.util.SourcePositions;
 import java.io.ByteArrayOutputStream;
@@ -413,11 +414,16 @@ public class JavacParser extends Parser {
     @Override
     public String mainTypeName() {
       String qualifiedName = FileUtil.getMainTypeName(file);
-      // The API for accessing a compilation unit's package changed between
-      // Java 8 and Java 10, so instead this gets the package from the source.
-      String packageName = JavacParser.packageName(source);
-      if (packageName != null) {
-        qualifiedName = packageName + "." + qualifiedName;
+      ExpressionTree packageDecl = unit.getPackageName();
+      if (packageDecl != null) {
+        qualifiedName = packageDecl.toString() + "." + qualifiedName;
+      } else {
+        // The API for accessing a compilation unit's package changed between
+        // Java 8 and Java 10, so instead this gets the package from the source.
+        String packageName = JavacParser.packageName(source);
+        if (packageName != null) {
+          qualifiedName = packageName + "." + qualifiedName;
+        }
       }
       return qualifiedName;
     }
